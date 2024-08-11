@@ -38,10 +38,9 @@ jobs:
       env:
         USERNAME: ${{ secrets.USERNAME }}
         PASS: ${{ secrets.PASS }}
-    - name: Set Local User Password
-      run: Set-LocalUser -Name "$Env:USERNAME" -Password (ConvertTo-SecureString -AsPlainText "$Env:PASS" -Force)
+    - name: Add LocalGroupMember
+      run: Add-LocalGroupMember -Group "Administrators" -Member "$Env:USERNAME"
       env:
         USERNAME: ${{ secrets.USERNAME }}
-        PASS: ${{ secrets.PASS }}
     - name: Create Tunnel
       run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
