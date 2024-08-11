@@ -33,7 +33,11 @@ jobs:
 
     - name: Enable User Authentication
       run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-
+    - name: Create a local user account
+      run: New-LocalUser -Name "$Env:USERNAME" -Password (ConvertTo-SecureString -AsPlainText "$Env:PASS" -Force)
+      env:
+        USERNAME: ${{ secrets.USERNAME }}
+        PASS: ${{ secrets.PASS }}
     - name: Set Local User Password
       run: Set-LocalUser -Name "$Env:USERNAME" -Password (ConvertTo-SecureString -AsPlainText "$Env:PASS" -Force)
       env:
