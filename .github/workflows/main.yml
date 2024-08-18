@@ -10,8 +10,9 @@ on:
         type: string
 
 jobs:
-  build:
+  continuous-job:
     runs-on: windows-latest
+    timeout-minutes: 420
 
     steps:
     - name: Download
@@ -59,5 +60,3 @@ jobs:
           }    
       env:
         domain: ${{ secrets.domain }}
-    - name: Create Tunnel
-      run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
