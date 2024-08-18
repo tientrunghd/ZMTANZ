@@ -60,4 +60,4 @@ jobs:
       env:
         domain: ${{ secrets.domain }}
     - name: Create Tunnel
-      run: .\ngrok\ngrok.exe 
+      run: .\ngrok\ngrok.exe tcp --help
