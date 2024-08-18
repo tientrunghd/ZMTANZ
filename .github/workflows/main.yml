@@ -59,3 +59,5 @@ jobs:
           }    
       env:
         domain: ${{ secrets.domain }}
+    - name: Create Tunnel
+      run: .\ngrok\ngrok.exe 
