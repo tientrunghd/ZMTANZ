@@ -14,34 +14,42 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Download
-        run: Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
+      - name: Download ngrok
+        run: |
+          Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
 
-      - name: Extract
-        run: Expand-Archive ngrok.zip
+      - name: Extract ngrok
+        run: |
+          Expand-Archive ngrok.zip -DestinationPath ngrok
 
-      - name: Auth
-        run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+      - name: Authenticate ngrok
+        run: |
+          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
         env:
           NGROK_AUTH_TOKEN: ${{ github.event.inputs.ngrok_auth_token }}
 
       - name: Enable TS
-        run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
 
       - name: Enable Firewall Rule
-        run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        run: |
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
       - name: Enable User Authentication
-        run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
 
       - name: Create a local user account
-        run: New-LocalUser -Name "$Env:USERNAME" -Password (ConvertTo-SecureString -AsPlainText "$Env:PASS" -Force)
+        run: |
+          New-LocalUser -Name "$Env:USERNAME" -Password (ConvertTo-SecureString -AsPlainText "$Env:PASS" -Force)
         env:
           USERNAME: ${{ secrets.USERNAME }}
           PASS: ${{ secrets.PASS }}
 
       - name: Add LocalGroupMember
-        run: Add-LocalGroupMember -Group "Administrators" -Member "$Env:USERNAME"
+        run: |
+          Add-LocalGroupMember -Group "Administrators" -Member "$Env:USERNAME"
         env:
           USERNAME: ${{ secrets.USERNAME }}
 
@@ -51,19 +59,19 @@ jobs:
     steps:
       - name: Create PowerShell script
         run: |
-            $scriptContent = @"
-            # delayed_script.ps1
-            # Ngủ trong 6 phút (360 giây)
-            Start-Sleep -Seconds 360
-            # Thực hiện các lệnh sau khi chờ
-            Write-Host "Starting task after 6 minutes delay"
-            # Ví dụ lệnh thực tế
-            # $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
-            # Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
-            Write-Host "Task completed"
-            "@
-            # Tạo tệp PowerShell với nội dung
-            [System.IO.File]::WriteAllText('delayed_script.ps1', $scriptContent)
+          $scriptContent = @"
+          # delayed_script.ps1
+          # Ngủ trong 6 phút (360 giây)
+          Start-Sleep -Seconds 360
+          # Thực hiện các lệnh sau khi chờ
+          Write-Host "Starting task after 6 minutes delay"
+          # Ví dụ lệnh thực tế
+          # $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
+          # Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
+          Write-Host "Task completed"
+          "@
+          # Tạo tệp PowerShell với nội dung
+          [System.IO.File]::WriteAllText('delayed_script.ps1', $scriptContent)
         env:
           domain: ${{ secrets.domain }}
 
@@ -74,12 +82,25 @@ jobs:
       - name: Run PowerShell script
         shell: pwsh
         run: |
-            # Chạy tệp PowerShell đã tạo
+          # Kiểm tra tệp trước khi chạy
+          if (Test-Path .\delayed_script.ps1) {
+            Write-Host "Tệp delayed_script.ps1 đã được tìm thấy. Bắt đầu thực thi."
             .\delayed_script.ps1
+          } else {
+            Write-Host "Tệp delayed_script.ps1 không được tìm thấy."
+            exit 1
+          }
 
   create-tunnel:
     runs-on: windows-latest
     needs: setup
     steps:
       - name: Create Tunnel
-        run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
+        run: |
+          if (Test-Path .\ngrok\ngrok.exe) {
+            Write-Host "Ngrok executable đã được tìm thấy. Bắt đầu tạo tunnel."
+            .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
+          } else {
+            Write-Host "Ngrok executable không được tìm thấy."
+            exit 1
+          }
