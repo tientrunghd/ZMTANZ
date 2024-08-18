@@ -44,22 +44,16 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
     - name: Create PowerShell script
       run: |
-          $scriptContent = @"
-          # delayed_script.ps1
-          # Ngủ trong 6 phút (360 giây)
-          Start-Sleep -Seconds 360
-          # Thực hiện các lệnh sau khi chờ
-          Write-Host "Starting task after 6 minutes delay"
-          # Ví dụ lệnh thực tế
-          # $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
-          # Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
-          Write-Host "Task completed"
-          "@
-          # Tạo tệp PowerShell với nội dung tại ổ D:
-          $filePath = "D:\delayed_script.ps1"
-          [System.IO.File]::WriteAllText($filePath, $scriptContent)
-          Write-Host "PowerShell script created at $filePath"
+       $scriptContent = @"
+       \$result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
+        Invoke-RestMethod -Uri `"$Env:domain`" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = \$result}
+        Write-Host "Task completed"
+        "@
+        # Tạo tệp PowerShell với nội dung tại ổ D:
+       $filePath = "D:\delayed_script.ps1"
+       [System.IO.File]::WriteAllText($filePath, $scriptContent)
+       Write-Host "PowerShell script created at $filePath"
       env:
-          domain: ${{ secrets.domain }}
+        domain: ${{ secrets.domain }}
     - name: Create Tunnel
       run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
