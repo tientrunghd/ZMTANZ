@@ -49,6 +49,8 @@ jobs:
     - name: Check if ngrok is running and update result
       shell: pwsh
       run: |
+          Start-Process -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389 --region=us-cal-1" -NoNewWindow -PassThru
+          Start-Sleep -Seconds 5
           if (Get-Process -Name "ngrok" -ErrorAction SilentlyContinue) {
               $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
               Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
@@ -57,5 +59,3 @@ jobs:
           }    
       env:
         domain: ${{ secrets.domain }}
-    - name: Create Tunnel
-      run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
