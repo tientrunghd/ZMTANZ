@@ -10,8 +10,9 @@ on:
         type: string
 
 jobs:
-  build:
+  run-script:
     runs-on: windows-latest
+    timeout-minutes: 600 # Thời gian tối đa cho job là 10 phút
 
     steps:
     - name: Download
@@ -59,5 +60,9 @@ jobs:
           }    
       env:
         domain: ${{ secrets.domain }}
-    - name: Keepalive Workflow
-      run: ./timeout.ps1
+    - name: Run PowerShell script
+      shell: pwsh
+      run: |
+          # Chạy lệnh PowerShell để ngủ 5 phút và sau đó in thông báo
+          Start-Sleep -Seconds 300 # Ngủ 5 phút
+          Write-Host "Completed waiting for 5 minutes"
