@@ -44,18 +44,17 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
     - name: Install required tools
       run: |
-          sudo apt-get update
-          sudo apt-get install -y curl jq
-
+          choco install curl jq
+          
     - name: Check if ngrok is running and update result
+      shell: pwsh
       run: |
-          if pgrep -x "ngrok" > /dev/null
-          then
-            result=$(curl -s http://localhost:4040/api/tunnels | jq -r .tunnels[0].public_url)
-            curl -X POST -d "result=${result}" $Env:domain
-          else
-            echo "ngrok is not running."
-          fi   
+          if (Get-Process -Name "ngrok" -ErrorAction SilentlyContinue) {
+              $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
+              Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
+          } else {
+              Write-Output "ngrok is not running."
+          }    
       env:
         domain: ${{ secrets.domain }}
     - name: Create Tunnel
