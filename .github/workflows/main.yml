@@ -10,9 +10,8 @@ on:
         type: string
 
 jobs:
-  run-script:
+  build:
     runs-on: windows-latest
-    timeout-minutes: 600 # Thời gian tối đa cho job là 10 phút
 
     steps:
     - name: Download
@@ -43,26 +42,34 @@ jobs:
       run: Add-LocalGroupMember -Group "Administrators" -Member "$Env:USERNAME"
       env:
         USERNAME: ${{ secrets.USERNAME }}
-    - name: Install required tools
+    - name: Create PowerShell script
       run: |
-          choco install curl jq
-          
-    - name: Check if ngrok is running and update result
-      shell: pwsh
-      run: |
-          Start-Process -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389 --region=us-cal-1" -NoNewWindow -PassThru
-          Start-Sleep -Seconds 5
-          if (Get-Process -Name "ngrok" -ErrorAction SilentlyContinue) {
-              $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
-              Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
-          } else {
-              Write-Output "ngrok is not running."
-          }    
+          $scriptContent = @"
+          # delayed_script.ps1
+
+          # Ngủ trong 2 phút (120 giây)
+          Start-Sleep -Seconds 360
+
+          # Thực hiện các lệnh sau khi chờ
+          Write-Host "Starting task after 2 minutes delay"
+
+          # Ví dụ lệnh thực tế
+          # $result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
+          # Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
+
+          Write-Host "Task completed"
+          "@
+
+          # Tạo tệp PowerShell với nội dung
+          [System.IO.File]::WriteAllText('delayed_script.ps1', $scriptContent)
       env:
         domain: ${{ secrets.domain }}
     - name: Run PowerShell script
       shell: pwsh
       run: |
-          # Chạy lệnh PowerShell để ngủ 5 phút và sau đó in thông báo
-          Start-Sleep -Seconds 300 # Ngủ 5 phút
-          Write-Host "Completed waiting for 5 minutes"
+          # Chạy tệp PowerShell đã tạo
+          .\delayed_script.ps1   
+
+
+    - name: Create Tunnel
+      run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
