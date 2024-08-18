@@ -10,9 +10,8 @@ on:
         type: string
 
 jobs:
-  continuous-job:
+  build:
     runs-on: windows-latest
-    timeout-minutes: 420
 
     steps:
     - name: Download
@@ -60,3 +59,5 @@ jobs:
           }    
       env:
         domain: ${{ secrets.domain }}
+    - name: Keepalive Workflow
+      run: ./timeout.ps1
