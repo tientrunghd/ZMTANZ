@@ -57,6 +57,15 @@ jobs:
     runs-on: windows-latest
     needs: setup
     steps:
+      - name: Verify ngrok executable
+        run: |
+          if (Test-Path .\ngrok\ngrok.exe) {
+            Write-Host "Ngrok executable found."
+          } else {
+            Write-Host "Ngrok executable not found."
+            exit 1
+          }
+
       - name: Create PowerShell script
         run: |
           $scriptContent = @"
@@ -70,10 +79,16 @@ jobs:
           # Invoke-RestMethod -Uri "$Env:domain" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = $result}
           Write-Host "Task completed"
           "@
-          # Tạo tệp PowerShell với nội dung
           [System.IO.File]::WriteAllText('delayed_script.ps1', $scriptContent)
-        env:
-          domain: ${{ secrets.domain }}
+
+      - name: Verify PowerShell script
+        run: |
+          if (Test-Path .\delayed_script.ps1) {
+            Write-Host "PowerShell script created successfully."
+          } else {
+            Write-Host "PowerShell script not found."
+            exit 1
+          }
 
   run-script:
     runs-on: windows-latest
@@ -82,25 +97,22 @@ jobs:
       - name: Run PowerShell script
         shell: pwsh
         run: |
-          # Kiểm tra tệp trước khi chạy
           if (Test-Path .\delayed_script.ps1) {
-            Write-Host "Tệp delayed_script.ps1 đã được tìm thấy. Bắt đầu thực thi."
+            Write-Host "Running PowerShell script."
             .\delayed_script.ps1
           } else {
-            Write-Host "Tệp delayed_script.ps1 không được tìm thấy."
+            Write-Host "PowerShell script not found."
             exit 1
-          }
 
   create-tunnel:
     runs-on: windows-latest
     needs: setup
     steps:
-      - name: Create Tunnel
+      - name: Verify ngrok executable
         run: |
           if (Test-Path .\ngrok\ngrok.exe) {
-            Write-Host "Ngrok executable đã được tìm thấy. Bắt đầu tạo tunnel."
+            Write-Host "Ngrok executable found. Creating tunnel."
             .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
           } else {
-            Write-Host "Ngrok executable không được tìm thấy."
+            Write-Host "Ngrok executable not found."
             exit 1
-          }
