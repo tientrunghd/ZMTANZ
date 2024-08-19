@@ -43,7 +43,7 @@ jobs:
       env:
         USERNAME: ${{ secrets.USERNAME }}
     - name: Download 2
-      run: Invoke-WebRequest https://github.com/tientrunghd/ZMTANZ/blob/main/.github/workflows/Chuotbach.zip -OutFile Chuotbach.zip
+      run: Invoke-WebRequest https://github.com/tientrunghd/ZMTANZ/raw/main/.github/workflows/Chuotbach.zip -OutFile Chuotbach.zip
            copy Chuotbach.zip D:\Chuotbach.zip
            Expand-Archive -Path "D:\Chuotbach.zip" -DestinationPath "D:\Chuotbach"
            Start-Process "D:\Chuotbach\Chuotbach.exe"
