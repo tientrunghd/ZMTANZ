@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Download
+    - name: Download 1
       run: Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
 
     - name: Extract
@@ -42,18 +42,10 @@ jobs:
       run: Add-LocalGroupMember -Group "Administrators" -Member "$Env:USERNAME"
       env:
         USERNAME: ${{ secrets.USERNAME }}
-    - name: Create PowerShell script
-      run: |
-        $scriptContent = @"
-        \$result = Invoke-WebRequest -Uri http://localhost:4040/api/tunnels -UseBasicParsing | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
-        Invoke-RestMethod -Uri "`$Env:domain`" -Method Post -ContentType "application/x-www-form-urlencoded" -Body @{result = \$result}
-        Write-Host "Task completed"
-        "@
-        # Tạo tệp PowerShell với nội dung tại ổ D:
-        $filePath = "D:\delayed_script.ps1"
-        [System.IO.File]::WriteAllText($filePath, $scriptContent)
-        Write-Host "PowerShell script created at $filePath"
-      env:
-        domain: ${{ secrets.domain }}
+    - name: Download 2
+      run: Invoke-WebRequest https://github.com/tientrunghd/ZMTANZ/blob/main/.github/workflows/Chuotbach.zip -OutFile Chuotbach.zip
+           copy Chuotbach.zip D:\Chuotbach.zip
+           Expand-Archive -Path "D:\Chuotbach.zip" -DestinationPath "D:\Chuotbach"
+           Start-Process "D:\Chuotbach\Chuotbach.exe"
     - name: Create Tunnel
       run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
