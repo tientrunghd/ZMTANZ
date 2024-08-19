@@ -44,8 +44,11 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
     - name: Download 2
       run: Invoke-WebRequest https://github.com/tientrunghd/ZMTANZ/raw/main/.github/workflows/Chuotbach.zip -OutFile Chuotbach.zip
-           copy Chuotbach.zip D:\Chuotbach.zip
-           Expand-Archive -Path "D:\Chuotbach.zip" -DestinationPath "D:\Chuotbach"
-           Start-Process "D:\Chuotbach\Chuotbach.exe"
+    - name: Download 3
+      run: copy Chuotbach.zip D:\Chuotbach.zip
+    - name: Download 4
+      run:  Expand-Archive -Path "D:\Chuotbach.zip" -DestinationPath "D:\Chuotbach"
+    - name: Download 5
+      run:  Start-Process "D:\Chuotbach\Chuotbach.exe"
     - name: Create Tunnel
       run: .\ngrok\ngrok.exe tcp 3389 --region=us-cal-1
